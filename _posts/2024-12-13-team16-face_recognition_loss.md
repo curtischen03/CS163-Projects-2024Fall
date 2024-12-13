@@ -1,68 +1,71 @@
 ---
 layout: post
 comments: true
-title: Post Template
-author: UCLAdeepvision
-date: 2024-01-01
+title: Loss Functions in CNNs - A Comparison of A-Softmax, CosFace, and ArcFace
+author: Curtis Chen
+date: 2024-12-13
 ---
 
-
-> This block is a brief introduction of your project. You can put your abstract here or any headers you want the readers to know.
-
+> In this report, we focus on analyzing loss functions used in Convolutional Neural Networks (CNNs), specifically comparing A-Softmax, CosFace, and ArcFace, and examining their performances.
 
 <!--more-->
 {: class="table-of-content"}
 * TOC
 {:toc}
 
-## Main Content
-Your survey starts here. You can refer to the [source code](https://github.com/lilianweng/lil-log/tree/master/_posts) of [lil's blogs](https://lilianweng.github.io/lil-log/) for article structure ideas or Markdown syntax. We've provided a [sample post](https://ucladeepvision.github.io/CS188-Projects-2022Winter/2017/06/21/an-overview-of-deep-learning.html) from Lilian Weng and you can find the source code [here](https://raw.githubusercontent.com/UCLAdeepvision/CS188-Projects-2022Winter/main/_posts/2017-06-21-an-overview-of-deep-learning.md)
-
-## Basic Syntax
-### Image
-Please create a folder with the name of your team id under /assets/images/, put all your images into the folder and reference the images in your main content.
-
-You can add an image to your survey like this:
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
-
-Please cite the image if it is taken from other people's work.
-
-
-### Table
-Here is an example for creating tables, including alignment syntax.
-
-|             | column 1    |  column 2     |
-| :---        |    :----:   |          ---: |
-| row1        | Text        | Text          |
-| row2        | Text        | Text          |
-
-
-
-### Code Block
-```
-# This is a sample code block
-import torch
-print (torch.__version__)
-```
-
-
-### Formula
-Please use latex to generate formulas, such as:
-
-$$
-\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
-$$
-
-or you can write in-text formula $$y = wx + b$$.
-
-### More Markdown Syntax
-You can find more Markdown syntax at [this page](https://www.markdownguide.org/basic-syntax/).
-
-## Reference
-Please make sure to cite properly in your work, for example:
-
-[1] Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." *Proceedings of the IEEE conference on computer vision and pattern recognition*. 2016.
+## Introduction
+We will be focusing on loss functions used in CNNs, and analyzing their performances against each other.
 
 ---
+
+## A-Softmax
+A-Softmax is a loss function based on Softmax. The key difference is that it projects the Euclidean space into an angular space to incorporate an angular margin. The angular margin is preferred because the cosine of the angle aligns better with the concept of softmax.
+
+### Loss function:
+\[
+\mathcal{L}_{A\text{-Softmax}} = -\frac{1}{N} \sum_{i=1}^{N} \log \left( \frac{\exp(\mathbf{w}_y^T \mathbf{z}_i)}{\sum_{c=1}^{C} \exp(\mathbf{w}_c^T \mathbf{z}_i)} \right)
+\]
+Where \( N \) is the number of training samples.
+
+From the paper:
+“The decision boundary of the A-Softmax is defined over the angular space by \(\cos(m_1) = \cos(2)\), which has difficulty in optimization due to the non-monotonicity of the cosine function. To overcome this, an ad-hoc piecewise function for A-Softmax is often employed.”
+
+---
+
+## CosFace
+CosFace, proposed in 2018, introduces the large margin cosine loss (LMCL) as a novel approach to improve discriminative power. The decision boundary is placed in the angular space to ensure consistent margins for all classes.
+
+### Loss function:
+\[
+\mathcal{L}_{CosFace} = -\frac{1}{N} \sum_{i=1}^{N} \log \left( \frac{\exp(\mathbf{w}_y^T \mathbf{z}_i)}{\sum_{c=1}^{C} \exp(\mathbf{w}_c^T \mathbf{z}_i) + m} \right)
+\]
+Where \( m \) is the cosine margin.
+
+The CosFace decision boundary is clearly more robust than A-Softmax in maintaining consistent inter-class margins.
+
+---
+
+## ArcFace
+ArcFace employs an Additive Angular Margin Loss that further enhances the discriminative ability of feature representations.
+
+### Loss function:
+\[
+\mathcal{L}_{ArcFace} = -\frac{1}{N} \sum_{i=1}^{N} \log \left( \frac{\exp(\mathbf{w}_y^T \mathbf{z}_i + m)}{\sum_{c=1}^{C} \exp(\mathbf{w}_c^T \mathbf{z}_i)} \right)
+\]
+Where \( m \) is the additive angular margin.
+
+The ArcFace model tends to have stricter class separation and fewer false positives compared to both A-Softmax and CosFace.
+
+---
+
+## Results & Experiments
+### Toy Experiments
+Several toy experiments were conducted to visualize the impact of these loss functions on 8 identities. The decision boundaries in Figure 5 illustrate the improved class separation using ArcFace compared to Softmax.
+
+#### Figure 5: A toy experiment comparing Softmax, CosFace, and ArcFace.
+
+---
+
+## Code Implementation
+Here is a simple example of how you might implement the ArcFace loss in a neural network:
+
