@@ -265,12 +265,12 @@ class ToyMNISTModel(nn.Module):
 Running this notebook, I got these image feature visualizations after training with Arcface:
 ![YOLO]({{ '/assets/images/16/figure8.png' | relative_url }})
 {: style="width: 800px; max-width: 100%;"}
-*Fig 8. Image Feature Visualization with ArcFace.*
+*Fig 8. Image Feature Visualization with ArcFace.* [1]
 
 Compared to running the same model with normal softmax, I got this:
 ![YOLO]({{ '/assets/images/16/figure9.png' | relative_url }})
 {: style="width: 800px; max-width: 100%;"}
-*Fig 9. Image Feature Visualization without ArcFace (Softmax)*
+*Fig 9. Image Feature Visualization without ArcFace (Softmax)* [1]
 
 The first visualization (ArcFace) is preferable because it demonstrates better separation between the feature clusters corresponding to different classes. 
 
