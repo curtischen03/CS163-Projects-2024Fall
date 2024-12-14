@@ -128,7 +128,13 @@ CosFace was trained on the small dataset CASIA-WebFace, with a CNN architecture 
 *Table 1. Comparison of LMCL with and without feature normalization.* [2].
 
 ### Cosine Margin m
-The value of m plays an important role in improving learning of highly discriminable features. A higher value of m enforces a stricter classiﬁcation, making the learned features more robust against noise. On the other hand, too large an m prevents the model from converging since the cosine constraint (FILL OUT) becomes too hard to satisfy. The bounds of m turn out to be <br>
+The value of m plays an important role in improving learning of highly discriminable features. A higher value of m enforces a stricter classiﬁcation, making the learned features more robust against noise. On the other hand, too large an m prevents the model from converging since the cosine constraint<br> 
+
+$$ 
+\cos{(\theta_1)}-m \geq \cos{(\theta_2)} 
+$$
+
+<br>becomes too hard to satisfy. The bounds of m turn out to be <br>
 
 $$
 0 \leq m \leq 1-\cos{(\frac{2 \pi}{C})}, (K=2)
@@ -142,13 +148,19 @@ $$
 0 \leq m \ll 1\frac{C}{C-1}, (C > K+1)
 $$
 
-<br>where  is the number of training classes and  is the dimension of the learned features. In an experiment with 8 distinct identities (8 faces), the upper limit of  would be . In Figure 4, three valid values of m were tested and compared against each other as well as against the performance of Softmax. The first row maps the features on the Euclidean space, while the second row projects the features onto the angular space.
+<br>where C is the number of training classes and K is the dimension of the learned features. In an experiment with 8 distinct identities (8 faces), the upper limit of m would be:<br> 
+
+$$ 
+1-\cos{(\frac{\pi}{4})} \approx 0.29 
+$$
+
+<br>In Figure 4, three valid values of m were tested and compared against each other as well as against the performance of Softmax. The first row maps the features on the Euclidean space, while the second row projects the features onto the angular space.
 
 ![YOLO]({{ '/assets/images/16/figure4.png' | relative_url }})
 {: style="width: 800px; max-width: 100%;"}
 *Fig 4. A toy experiment of different loss functions on 8 identities, comparing Softmax and LMCL* [2].
 
-The values of m, ranging from 0 to 0.45, were tested on the datasets LFW and YTF. The upper limit was set to 0.45 because with the dataset, 0.45 was the point of no convergence. As the value of m increased, the accuracy of the model also increased up until , when the performance began to decline.
+The values of m, ranging from 0 to 0.45, were tested on the datasets LFW and YTF. The upper limit was set to 0.45 because with the dataset, 0.45 was the point of no convergence. As the value of m increased, the accuracy of the model also increased up until m=0.35, when the performance began to decline.
 
 ![YOLO]({{ '/assets/images/16/figure5.png' | relative_url }})
 {: style="width: 800px; max-width: 100%;"}
@@ -158,7 +170,7 @@ The values of m, ranging from 0 to 0.45, were tested on the datasets LFW and YTF
 ---
 
 ## ArcFace
-CosFace was able to improve on the loss function to obtain better performance while also offering easier implementation. Efforts to further improve loss functions for facial recognition models culminated in the development of ArcFace, proposed by Deng et. al in their paper ArcFace: Additive Angular Margin Loss for Deep Face Recognition. ArcFace uses another loss function, Additive Angular Margin Loss, to stabilize the training process and improve the discriminative power of recognition model. This loss function adds an additive angular margin penalty . ArcFace optimizes the geodesic distance margin, and achieves excellent performance on multiple face recognition benchmarks, on both image and video datasets. It is both easy and efficient to implement, only needing a few lines of code and does not add high levels of computational complexity during training. 
+CosFace was able to improve on the loss function to obtain better performance while also offering easier implementation. Efforts to further improve loss functions for facial recognition models culminated in the development of ArcFace, proposed by Deng et. al in their paper ArcFace: Additive Angular Margin Loss for Deep Face Recognition. ArcFace uses another loss function, Additive Angular Margin Loss, to stabilize the training process and improve the discriminative power of recognition model. This loss function adds an additive angular margin penalty m. ArcFace optimizes the geodesic distance margin, and achieves excellent performance on multiple face recognition benchmarks, on both image and video datasets. It is both easy and efficient to implement, only needing a few lines of code and does not add high levels of computational complexity during training. 
 
 ### Loss function:
 $$
