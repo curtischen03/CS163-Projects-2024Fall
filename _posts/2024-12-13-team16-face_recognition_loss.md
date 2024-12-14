@@ -61,7 +61,7 @@ $$
 $$
 <br>where theta is the angle between Wi and x. This new decision boundary only depends on theta, and is able to optimize angles directly. This helps the CNN to learn the angularly distributed features. However, this is not enough to increase the discriminative power of the features. The integer m is introduced to quantitatively control the size of the angular margin. 
 
-### In binary-class case:
+In binary-class case:
 
 Class 1 Decision Boundary: <br>
 $$
@@ -107,7 +107,7 @@ $$
 \cos{(\theta_j, i)} = W_j^T x_i
 $$
 
-<br>where  is the number of training samples,  is the -th feature vector corresponding to the ground-truth class of , the  is the weight vector of the -th class, and  is the angle between  and . The cosine margin  is defined such that the LMCL decision boundary is given by:<br>
+<br>where N is the number of training samples, xi is the i-th feature vector corresponding to the ground-truth class of yi, the Wj is the weight vector of the j-th class, and theta_j is the angle between Wj and xi. The cosine margin m is defined such that the LMCL decision boundary is given by:<br>
 
 $$
 \cos{(\theta_1)}-m = \cos{(\theta_2)}
