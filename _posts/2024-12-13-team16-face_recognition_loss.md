@@ -153,7 +153,7 @@ The values of m, ranging from 0 to 0.45, were tested on the datasets LFW and YTF
 ---
 
 ## ArcFace
-ArcFace uses another loss function: Additive Angular Margin Loss. This loss function adds an additive angular margin penalty . 
+CosFace was able to improve on the loss function to obtain better performance while also offering easier implementation. Efforts to further improve loss functions for facial recognition models culminated in the development of ArcFace, proposed by Deng et. al in their paper ArcFace: Additive Angular Margin Loss for Deep Face Recognition. ArcFace uses another loss function, Additive Angular Margin Loss, to stabilize the training process and improve the discriminative power of recognition model. This loss function adds an additive angular margin penalty . ArcFace optimizes the geodesic distance margin, and achieves excellent performance on multiple face recognition benchmarks, on both image and video datasets. It is both easy and efficient to implement, only needing a few lines of code and does not add high levels of computational complexity during training. 
 
 ### Loss function:
 $$
@@ -165,6 +165,8 @@ A toy experiment similar to the one run for CosFace was run for ArcFace. The com
 ![YOLO]({{ '/assets/images/16/figure6.png' | relative_url }})
 {: style="width: 800px; max-width: 100%;"}
 *Fig 6. A toy experiment of different loss functions on 8 identities. Comparison between Softmax and ArcFace.* [3].
+
+ArcFace was evaluated on the widely used benchmark datasets Live Faces in the Wild (LFW) and YouTube Faces (YTF) as well. ArcFace that was trained on MS1MV2 (a database featuring mainly celebrities) beat the baseline for CosFace with a significant margin. It proved more accurate than many of the other available methods, as depicted in Figure 6. 
 
 ![YOLO]({{ '/assets/images/16/figure7.png' | relative_url }})
 {: style="width: 800px; max-width: 100%;"}
