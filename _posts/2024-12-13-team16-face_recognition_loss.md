@@ -74,9 +74,9 @@ $$
 
 When A-softmax loss is optimized, the inter-class margin is enlarged at the same time as the intra-class angular distribution is compressed, leading to the decision regions to be more separated. Existing CNN architectures have been shown to benefit from A-Softmax loss and its ability to learn discriminative face features. Liu et. al were the first to show the effectiveness of this angular margin introduction in facial recognition. Below is a figure from the published article that showcases the difference in accuracy between A-Softmax and Softmax on the Labeled Face in the Wild (LFW) and YouTube Faces (YTF) datasets. 
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure1.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 1. Comparison of accuracies of A-Softmax and Softmax with varying numbers of convolution layers* [7].
 
 A-Softmax loss lends a useful geometric interpretation for discriminative learned features, and after the introduction of it with this paper, has been implemented in other areas by computer vision researchers in the field of facial recognition, primarily CosFace and ArcFace. 
 
@@ -84,16 +84,17 @@ A-Softmax loss lends a useful geometric interpretation for discriminative learne
 ## CosFace
 CosFace is a model proposed in 2018 that uses a novel loss function called large margin cosine loss (LMCL) instead of the widely used softmax loss. This loss function is designed to improve upon the discriminating power of previous loss functions, such as the original softmax loss and A-Softmax loss. It focuses on having a large inter-class angular margin in order to strengthen the discriminating power. The overall framework of the CosFace model is visualized in Figure 2.
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure2.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 2. An overview of the proposed CosFace framework* [2].
 
 ### Loss function:
 Like A-Softmax, LMCL works in the angular space instead of the Euclidean space. It modifies the traditional softmax loss by normalizing feature and weight vectors using L2 normalization to eliminate radial variability. Additionally, a cosine margin is added to strengthen the decision boundary within the angular domain. The loss is defined by:
 
 $$
-\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+L_{lmc} = \frac{1}{N} \sum_{i} - \log {\frac{e^{s( \cos{(/theta_{yi}, i)}-m)}}{e^{s( \cos{(/theta_{yi}, i)}-m)} + \sum_{j \neq{y_i}} e^{s \cos{(/theta_j, i)}}}}
 $$
+
 $$
 \tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
 $$
@@ -110,18 +111,18 @@ $$
 $$
 The decision margin is defined in the cosine space, which solves the issue of having different margins for different classes like A-Softmax. The decision boundaries of Softmax, A-Softmax, and LMCL are visualized in Figure 3.
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure3.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 3. The comparison of decision margins for different loss functions in the binary-classes scenarios. Dashed lines represent the decision boundary, and gray areas are decision margins.* [2].
 
 ### Normalization
 Both the weight vectors and feature vectors are normalized in LMCL. Feature normalization removes radical variance, which increases the model’s discriminative power. Without normalization, the original softmax loss jointly learns the Euclidean norm (L2-norm) of feature vectors and their angular relationships, which weakens the focus on angular discrimination. By enforcing a consistent L2-norm across all feature vectors, the learning process depends solely on cosine values, effectively clustering features of the same class and separating those of different classes on a hypersphere.
 
 CosFace was trained on the small dataset CASIA-WebFace, with a CNN architecture consisting of 64 convolutional layers, both with and without normalization. It was then tested on several public face datasets, including LFW, YTF, and MegaFace. The results are shown in Table 1. The model with normalization performed with better accuracy than the model that skipped the normalization step in all three datasets.
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/table1.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Table 1. Comparison of LMCL with and without feature normalization.* [2].
 
 ### Cosine Margin m
 The value of  plays an important role in improving learning of highly discriminable features. A higher value of  enforces a stricter classiﬁcation, making the learned features more robust against noise. On the other hand, too large an  prevents the model from converging since the cosine constraint () becomes too hard to satisfy. The bounds of  turn out to be 
@@ -138,15 +139,15 @@ $$
 
 where  is the number of training classes and  is the dimension of the learned features. In an experiment with 8 distinct identities (8 faces), the upper limit of  would be . In Figure 4, three valid values of m were tested and compared against each other as well as against the performance of Softmax. The first row maps the features on the Euclidean space, while the second row projects the features onto the angular space.
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure4.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 4. A toy experiment of different loss functions on 8 identities, comparing Softmax and LMCL* [2].
 
 The values of m, ranging from 0 to 0.45, were tested on the datasets LFW and YTF. The upper limit was set to 0.45 because with the dataset, 0.45 was the point of no convergence. As the value of m increased, the accuracy of the model also increased up until , when the performance began to decline.
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure5.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 5. Comparing the accuracy of CosFace with different values of m* [2].
 
 
 ---
@@ -161,13 +162,13 @@ $$
 
 A toy experiment similar to the one run for CosFace was run for ArcFace. The comparison of the results against Softmax is shown in Figure 5. The classes are clearly separated with ArcFace, a significant improvement from Softmax where the classes tend to blend together at the decision boundaries.
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure6.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 6. A toy experiment of different loss functions on 8 identities. Comparison between Softmax and ArcFace.* [3].
 
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure7.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 7. Performance comparison of different methods on LFW and YTF, featuring ArcFace outperforming all of them.* [3].
 
 ---
 ## Results & Experiments
@@ -243,14 +244,14 @@ class ToyMNISTModel(nn.Module):
     return logits
 ```
 Running this notebook, I got these image feature visualizations after training with Arcface:
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure8.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 8. Image Feature Visualization with ArcFace.*
 
 Compared to running the same model with normal softmax, I got this:
-![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
-{: style="width: 400px; max-width: 100%;"}
-*Fig 1. YOLO: An object detection method in computer vision* [1].
+![YOLO]({{ '/assets/images/16/figure9.png' | relative_url }})
+{: style="width: 800px; max-width: 100%;"}
+*Fig 9. Image Feature Visualization without ArcFace (Softmax)*
 
 The first visualization (ArcFace) is preferable because it demonstrates better separation between the feature clusters corresponding to different classes. 
 
@@ -270,3 +271,4 @@ After running the existing notebook, I decided to run the deepface module myself
 [4] Nayeem, M. (2020, September 27). ArcFace based Face recognition. Analytics Vidhya. https://medium.com/analytics-vidhya/exploring-other-face-recognition-approaches-part-2-arcface-88cda1fdfeb8 <br>
 [5] Papers with code - ArcFace explained. (n.d.). Papers With Code. Retrieved December 13, 2024, from https://paperswithcode.com/method/arcface<br> 
 [6] Zafeiriou, J. D., Jia Guo, Niannan Xue, Stefanos. (n.d.). ArcFace: Additive angular margin loss for deep face recognition. <br>
+[7] Liu, W. et al. “SphereFace: Deep Hypersphere Embedding for Face Recognition”. 2017
