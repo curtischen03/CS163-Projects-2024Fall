@@ -1,12 +1,12 @@
 ---
 layout: post
 comments: true
-title: Loss Functions in CNNs - A Comparison of A-Softmax, CosFace, and ArcFace
-author: Curtis Chen
+title: CNN Loss Function Advances for Deep Facial Recognition
+author: Curtis Chen, Kendra Lin, Emine Ozer
 date: 2024-12-13
 ---
 
-> In this report, we focus on analyzing loss functions used in Convolutional Neural Networks (CNNs), specifically comparing A-Softmax, CosFace, and ArcFace, and examining their performances.
+> In this report, we focus on analyzing loss functions used in Convolutional Neural Networks (CNNs) for Deep Face Recognition, specifically comparing A-Softmax, CosFace, and ArcFace, and examining their performances.
 
 <!--more-->
 {: class="table-of-content"}
@@ -14,7 +14,11 @@ date: 2024-12-13
 {:toc}
 
 ## Introduction
-We will be focusing on loss functions used in CNNs, and analyzing their performances against each other.
+We will be focusing on loss functions used in CNNs for Deep Face Recognition, and analyzing their performances.
+
+Facial recognition tasks rely on computer vision to identify or group people in images or videos. The source for the input image can be a phone camera, security cameras, or drones, among other sources. The initial pioneers of facial recognition, Woody Bledsoe, Helen Chan Wolf, and Charles Bisson, manually marked key human features and fed them into machines in the 1960s. Now, with the field bolstered by the recent boom in computer vision, models for facial recognition have steadily improved. In one way or another, most individuals with a smartphone are exposed to facial recognition every day through their photo management applications or FaceID. 
+
+Despite the advances made in this field, some challenges remain. Maintaining accuracy of the model even with variations in lighting, pose, or expressions is an existing obstacle to be tackled. Some images that have occlusion, low resolution, or partial face block can also cause problems. Questions of the ethics of FR, potentially jeopardized security of the sensitive databases amassed for this specific task, and racial/ethnic bias are all important issues that must be taken into account when developing a model for facial recognition. For this report, the main focus will be on the improvement of facial recognition models, specifically the loss functions implemented in many of the deeper CNN models. 
 
 ---
 
@@ -22,50 +26,247 @@ We will be focusing on loss functions used in CNNs, and analyzing their performa
 A-Softmax is a loss function based on Softmax. The key difference is that it projects the Euclidean space into an angular space to incorporate an angular margin. The angular margin is preferred because the cosine of the angle aligns better with the concept of softmax.
 
 ### Loss function:
-\[
-\mathcal{L}_{A\text{-Softmax}} = -\frac{1}{N} \sum_{i=1}^{N} \log \left( \frac{\exp(\mathbf{w}_y^T \mathbf{z}_i)}{\sum_{c=1}^{C} \exp(\mathbf{w}_c^T \mathbf{z}_i)} \right)
-\]
-Where \( N \) is the number of training samples.
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
 
-From the paper:
-“The decision boundary of the A-Softmax is defined over the angular space by \(\cos(m_1) = \cos(2)\), which has difficulty in optimization due to the non-monotonicity of the cosine function. To overcome this, an ad-hoc piecewise function for A-Softmax is often employed.”
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+Where N is the number of training samples.
+
+### Testing Protocols for Facial Recognition
+To test a model of facial recognition, there are two settings: either closed-set or open-set. A closed-set protocol would have all testing identities predefined in the training set, making the facial recognition class one of a classification problem. On the other hand, open-set protocols have testing identities that are separate from the training set. This makes open-set FR more difficult to achieve but is in practice closer to real life applications. In open-set protocols, classifying the faces to known identities in the training set is not possible, so the faces must be mapped to a discriminative feature space. The end goal of open-set facial recognition is to learn discriminative large-margin features. 
+
+### Enhancement of Discriminative Power
+For the model to work as desired, it is necessary for the intra-class variation of faces to be smaller than the inter-class distance between faces to get good accuracy using the nearest neighbor algorithm. Before the work of Liu et. al in their paper SphereFace: Deep Hypersphere Embedding for Face Recognition, CNN-based models could not effectively satisfy these requirements. The commonly chosen loss function, the softmax function, was not able to learn separable features that were discriminative enough. Previous models imposed Euclidean margins to learned features, while the authors of this paper introduced incorporating angular margins instead. 
+
+### A-Softmax Loss
+The decision boundary in softmax loss is 
+
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+where W_{i} and b_{i} are the weights and bias.
+
+Define x as a feature vector, and constrain: 
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+and b_{1} - b_{2} = 0 
+
+Decision boundary becomes:
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+where theta is the angle between Wi and x. This new decision boundary only depends on theta, and is able to optimize angles directly. This helps the CNN to learn the angularly distributed features. However, this is not enough to increase the discriminative power of the features. The integer m is introduced to quantitatively control the size of the angular margin. 
+
+In binary-class case:
+
+Class 1 Decision Boundary: 
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+Class 2 Decision Boundary:
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+
+When A-softmax loss is optimized, the inter-class margin is enlarged at the same time as the intra-class angular distribution is compressed, leading to the decision regions to be more separated. Existing CNN architectures have been shown to benefit from A-Softmax loss and its ability to learn discriminative face features. Liu et. al were the first to show the effectiveness of this angular margin introduction in facial recognition. Below is a figure from the published article that showcases the difference in accuracy between A-Softmax and Softmax on the Labeled Face in the Wild (LFW) and YouTube Faces (YTF) datasets. 
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
+A-Softmax loss lends a useful geometric interpretation for discriminative learned features, and after the introduction of it with this paper, has been implemented in other areas by computer vision researchers in the field of facial recognition, primarily CosFace and ArcFace. 
 
 ---
-
 ## CosFace
-CosFace, proposed in 2018, introduces the large margin cosine loss (LMCL) as a novel approach to improve discriminative power. The decision boundary is placed in the angular space to ensure consistent margins for all classes.
+CosFace is a model proposed in 2018 that uses a novel loss function called large margin cosine loss (LMCL) instead of the widely used softmax loss. This loss function is designed to improve upon the discriminating power of previous loss functions, such as the original softmax loss and A-Softmax loss. It focuses on having a large inter-class angular margin in order to strengthen the discriminating power. The overall framework of the CosFace model is visualized in Figure 2.
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
 
 ### Loss function:
-\[
-\mathcal{L}_{CosFace} = -\frac{1}{N} \sum_{i=1}^{N} \log \left( \frac{\exp(\mathbf{w}_y^T \mathbf{z}_i)}{\sum_{c=1}^{C} \exp(\mathbf{w}_c^T \mathbf{z}_i) + m} \right)
-\]
-Where \( m \) is the cosine margin.
+Like A-Softmax, LMCL works in the angular space instead of the Euclidean space. It modifies the traditional softmax loss by normalizing feature and weight vectors using L2 normalization to eliminate radial variability. Additionally, a cosine margin is added to strengthen the decision boundary within the angular domain. The loss is defined by:
 
-The CosFace decision boundary is clearly more robust than A-Softmax in maintaining consistent inter-class margins.
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+where  is the number of training samples,  is the -th feature vector corresponding to the ground-truth class of , the  is the weight vector of the -th class, and  is the angle between  and . The cosine margin  is defined such that the LMCL decision boundary is given by:
+
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+The decision margin is defined in the cosine space, which solves the issue of having different margins for different classes like A-Softmax. The decision boundaries of Softmax, A-Softmax, and LMCL are visualized in Figure 3.
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
+### Normalization
+Both the weight vectors and feature vectors are normalized in LMCL. Feature normalization removes radical variance, which increases the model’s discriminative power. Without normalization, the original softmax loss jointly learns the Euclidean norm (L2-norm) of feature vectors and their angular relationships, which weakens the focus on angular discrimination. By enforcing a consistent L2-norm across all feature vectors, the learning process depends solely on cosine values, effectively clustering features of the same class and separating those of different classes on a hypersphere.
+
+CosFace was trained on the small dataset CASIA-WebFace, with a CNN architecture consisting of 64 convolutional layers, both with and without normalization. It was then tested on several public face datasets, including LFW, YTF, and MegaFace. The results are shown in Table 1. The model with normalization performed with better accuracy than the model that skipped the normalization step in all three datasets.
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
+### Cosine Margin m
+The value of  plays an important role in improving learning of highly discriminable features. A higher value of  enforces a stricter classiﬁcation, making the learned features more robust against noise. On the other hand, too large an  prevents the model from converging since the cosine constraint () becomes too hard to satisfy. The bounds of  turn out to be 
+
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
+
+where  is the number of training classes and  is the dimension of the learned features. In an experiment with 8 distinct identities (8 faces), the upper limit of  would be . In Figure 4, three valid values of m were tested and compared against each other as well as against the performance of Softmax. The first row maps the features on the Euclidean space, while the second row projects the features onto the angular space.
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
+The values of m, ranging from 0 to 0.45, were tested on the datasets LFW and YTF. The upper limit was set to 0.45 because with the dataset, 0.45 was the point of no convergence. As the value of m increased, the accuracy of the model also increased up until , when the performance began to decline.
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
 
 ---
 
 ## ArcFace
-ArcFace employs an Additive Angular Margin Loss that further enhances the discriminative ability of feature representations.
+ArcFace uses another loss function: Additive Angular Margin Loss. This loss function adds an additive angular margin penalty . 
 
 ### Loss function:
-\[
-\mathcal{L}_{ArcFace} = -\frac{1}{N} \sum_{i=1}^{N} \log \left( \frac{\exp(\mathbf{w}_y^T \mathbf{z}_i + m)}{\sum_{c=1}^{C} \exp(\mathbf{w}_c^T \mathbf{z}_i)} \right)
-\]
-Where \( m \) is the additive angular margin.
+$$
+\tilde{\mathbf{z}}^{(t)}_i = \frac{\alpha \tilde{\mathbf{z}}^{(t-1)}_i + (1-\alpha) \mathbf{z}_i}{1-\alpha^t}
+$$
 
-The ArcFace model tends to have stricter class separation and fewer false positives compared to both A-Softmax and CosFace.
+A toy experiment similar to the one run for CosFace was run for ArcFace. The comparison of the results against Softmax is shown in Figure 5. The classes are clearly separated with ArcFace, a significant improvement from Softmax where the classes tend to blend together at the decision boundaries.
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
 
 ---
-
 ## Results & Experiments
-### Toy Experiments
-Several toy experiments were conducted to visualize the impact of these loss functions on 8 identities. The decision boundaries in Figure 5 illustrate the improved class separation using ArcFace compared to Softmax.
+### Running Existing Codebase
+I ran an existing Google Collab notebook that illustrated a basic arc face loss example. Here is the implementation of arcface:
 
-#### Figure 5: A toy experiment comparing Softmax, CosFace, and ArcFace.
+```
+class AdditiveAngularMarginPenalty(nn.Module):
+    """ 
+        Insightface implementation : https://github.com/deepinsight/insightface/blob/master/recognition/arcface_torch/losses.py
+        ArcFace (https://arxiv.org/pdf/1801.07698v1.pdf):
+    """
+    def __init__(self, s=64.0, margin=0.5):
+        super(AdditiveAngularMarginPenalty, self).__init__()
+        self.s = s
+        self.margin = margin
+        
+        self.cos_m = math.cos(margin)
+        self.sin_m = math.sin(margin)
+        self.theta = math.cos(math.pi - margin)
+        self.sinmm = math.sin(math.pi - margin) * margin
+        self.easy_margin = False
+
+    def forward(self, logits: torch.Tensor, labels: torch.Tensor):
+        index = torch.where(labels != -1)[0]
+        target_logit = logits[index, labels[index].view(-1)]
+
+        with torch.no_grad():
+            target_logit.arccos_()
+            logits.arccos_()
+            final_target_logit = target_logit + self.margin
+            logits[index, labels[index].view(-1)] = final_target_logit
+            logits.cos_()
+        logits = logits * self.s   
+        return logits
+```
+Here is the implementation of the basic model:
+```
+class ToyMNISTModel(nn.Module):
+  def __init__(self):
+    super(ToyMNISTModel, self).__init__()
+
+    self.conv1 = nn.Conv2d(1, 32, 5)
+    self.conv2 = nn.Conv2d(32, 32, 5)
+    self.conv3 = nn.Conv2d(32, 64, 5)
+    self.dropout = nn.Dropout(0.25)
+    self.fc1 = nn.Linear(3*3*64, 256)
+    self.fc2 = nn.Linear(256, 10)
+    self.angular_margin_penalty = AdditiveAngularMarginPenalty(10, 10)
+    self.relu = nn.ReLU(inplace=True)
+    self.maxpooling = nn.MaxPool2d(2, 2)
+
+  def forward(self, x, label=None):
+    # CNN part
+    x = self.relu(self.conv1(x))
+    x = self.dropout(x)
+    x = self.relu(self.maxpooling(self.conv2(x)))
+    x = self.dropout(x)
+    x = self.relu(self.maxpooling(self.conv3(x)))
+    x = self.dropout(x)
+
+    # fully connected part
+    x = x.view(x.size(0), -1)    # (batch_size, 3*3*64)
+    x = self.relu(self.fc1(x))
+    x = self.fc2(x)
+
+    if label is not None:
+      # angular margin penalty part
+      logits = self.angular_margin_penalty(x, label)
+    else:
+      logits = x
+
+    return logits
+```
+Running this notebook, I got these image feature visualizations after training with Arcface:
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
+Compared to running the same model with normal softmax, I got this:
+![YOLO]({{ '/assets/images/UCLAdeepvision/object_detection.png' | relative_url }})
+{: style="width: 400px; max-width: 100%;"}
+*Fig 1. YOLO: An object detection method in computer vision* [1].
+
+The first visualization (ArcFace) is preferable because it demonstrates better separation between the feature clusters corresponding to different classes. 
+
+[Link to the Existing Codebase I ran](https://drive.google.com/file/d/1rPfsbTa-XbGujAQxz55_-kxoBWcmiB0t/view?usp=sharing)
+
+### Implementing Our Own ideas
+
+After running the existing notebook, I decided to run the deepface module myself for arc face. I compared the results for different models, such as Facenet and VGG-Face. Having tested it on a few images that I uploaded, I got very similar results compared to other models. However, looking at the thresholds and differences, I noticed that Arcface tends to be more strict and penalizes differences more compared to the other models. This made it less likely to have false positives. 
+
+[Collab Notebook Link for Implementing our Own Ideas](https://colab.research.google.com/drive/1bitLX5mDxANVOpm63j6bnyS5dmSWso8x?authuser=1#scrollTo=BExmvkeT2v8U)
 
 ---
-
-## Code Implementation
-Here is a simple example of how you might implement the ArcFace loss in a neural network:
-
+## Reference
+[1] Shizuya, Y. (2024, June 27). ArcFace — Architecture and Practical example: How to calculate the face similarity between images. Medium. https://medium.com/@ichigo.v.gen12/arcface-architecture-and-practical-example-how-to-calculate-the-face-similarity-between-images-183896a35957<br> 
+[2] Wang, H. et al. “CosFace: Large Margin Cosine Loss for Deep Face Recognition.” 2018.<br>
+[3] Deng, Jiankang et al. “ArcFace: Additive Angular Margin Loss for Deep Face Recognition” Proceedings of the IEEE conference on computer vision and pattern recognition. 2019.<br>
+[4] Nayeem, M. (2020, September 27). ArcFace based Face recognition. Analytics Vidhya. https://medium.com/analytics-vidhya/exploring-other-face-recognition-approaches-part-2-arcface-88cda1fdfeb8 <br>
+[5] Papers with code - ArcFace explained. (n.d.). Papers With Code. Retrieved December 13, 2024, from https://paperswithcode.com/method/arcface<br> 
+[6] Zafeiriou, J. D., Jia Guo, Niannan Xue, Stefanos. (n.d.). ArcFace: Additive angular margin loss for deep face recognition. <br>
