@@ -183,7 +183,7 @@ $$
 {: style="width: 800px; max-width: 100%;"}
 *Fig 6. A toy experiment of different loss functions on 8 identities. Comparison between Softmax and ArcFace.* [3].
 
-ArcFace was evaluated on the widely used benchmark datasets Live Faces in the Wild (LFW) and YouTube Faces (YTF) as well. ArcFace that was trained on MS1MV2 (a database featuring mainly celebrities) beat the baseline for CosFace with a significant margin. It proved more accurate than many of the other available methods, as depicted in Figure 6. 
+ArcFace was evaluated on the widely used benchmark datasets Live Faces in the Wild (LFW) and YouTube Faces (YTF) as well. ArcFace that was trained on MS1MV2 (a database featuring mainly celebrities) beat the baseline for CosFace with a significant margin. It proved more accurate than many of the other available methods, as depicted in Figure 7. 
 
 ![YOLO]({{ '/assets/images/16/figure7.png' | relative_url }})
 {: style="width: 800px; max-width: 100%;"}
