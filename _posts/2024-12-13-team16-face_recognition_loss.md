@@ -162,7 +162,7 @@ CosFace was able to improve on the loss function to obtain better performance wh
 
 ### Loss function:
 $$
-L_{aam} = - \frac{1}{N} \sum_{i=1}^{N} \log {\frac{e^{s( \cos{(/theta_{yi}+m)})}}{e^{s( \cos{(/theta_{yi}+m)})} + \sum_{j=1, j \neq{y_i}}^{n} e^{s \cos{/theta_j}}}}
+L_{aam} = - \frac{1}{N} \sum_{i=1}^{N} \log {\frac{e^{s( \cos{(\theta_{yi}+m)})}}{e^{s( \cos{(\theta_{yi}+m)})} + \sum_{j=1, j \neq{y_i}}^{n} e^{s \cos{\theta_j}}}}
 $$
 
 <br>A toy experiment similar to the one run for CosFace was run for ArcFace. The comparison of the results against Softmax is shown in Figure 5. The classes are clearly separated with ArcFace, a significant improvement from Softmax where the classes tend to blend together at the decision boundaries.
